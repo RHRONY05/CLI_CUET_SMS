@@ -1,0 +1,5 @@
+# Runtime-generated data directories (created when the app runs)
+db/
+courses/
+logs/
+.env
