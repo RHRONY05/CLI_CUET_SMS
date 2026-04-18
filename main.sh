@@ -50,6 +50,9 @@ while true; do
             fi
             ;;
         2)
+            student_registration
+            ;;
+        3)
             print_about
             ;;
         0)

@@ -261,30 +261,16 @@ _student_notices() {
     print_section "Course Notices"
     echo ""
 
-    # List enrolled courses
-    echo "  Enrolled Courses:"
-    local i=1 codes=()
+    clear_picker
     while IFS='|' read -r uname b_id code level term status; do
         [[ "$uname" != "$SESSION_USERNAME" || "$b_id" != "$bid" ]] && continue
-        # Only show active or recently completed (any)
         local cname; cname=$(get_course_field "$code" 2)
-        printf "    [%d] %-10s %s  [Level-%s Term-%s]\n" "$i" "$code" "$cname" "$level" "$term"
-        codes+=("$code")
-        ((i++))
+        PICKER_KEYS+=("$code")
+        PICKER_LABELS+=("[$code] $cname (Level-$level Term-$term)")
     done < "$ENROLLMENTS_FILE"
 
-    if [[ ${#codes[@]} -eq 0 ]]; then
-        echo "  No enrollments found."
-        pause; return
-    fi
-
-    echo ""
-    read -rp "  Course Code: " code
-    code=$(trim "$code")
-
-    if ! grep -q "^${SESSION_USERNAME}|${bid}|${code}|" "$ENROLLMENTS_FILE"; then
-        print_error "You are not enrolled in '$code'."; pause; return
-    fi
+    if ! _render_picker "Select Course to view Notices"; then return; fi
+    local code="$PICKED_ID"
 
     local nf; nf=$(get_notices_file "$code")
     local cname; cname=$(get_course_field "$code" 2)

@@ -41,6 +41,7 @@ _admin_user_management() {
             "4:List All Users" \
             "5:Delete User" \
             "6:Reset User Password" \
+            "7:Pending Registrations" \
             "0:Back"
 
         case "$MENU_CHOICE" in
@@ -50,6 +51,7 @@ _admin_user_management() {
             4) _list_users ;;
             5) _delete_user ;;
             6) _reset_password ;;
+            7) _pending_registrations ;;
             0) return ;;
             *) print_error "Invalid choice."; pause ;;
         esac
@@ -84,16 +86,8 @@ _add_user_flow() {
 
     local batch_id=""
     if [[ "$role" == "student" ]]; then
-        while true; do
-            read -rp "  Batch ID   : " batch_id
-            batch_id=$(trim "$batch_id")
-            if [[ -z "$batch_id" ]]; then print_error "Batch ID required for students."; continue; fi
-            if ! batch_exists "$batch_id"; then
-                print_error "Batch '$batch_id' not found. Create the batch first."
-                continue
-            fi
-            break
-        done
+        if ! pick_batch; then return; fi
+        batch_id="$PICKED_ID"
     fi
 
     local tmp_pass
@@ -131,14 +125,9 @@ _list_users() {
 
 _delete_user() {
     print_header
-    print_section "Delete User"
-    echo ""
-    read -rp "  Username to delete: " uname
-    uname=$(trim "$uname")
+    if ! pick_user; then return; fi
+    local uname="$PICKED_ID"
 
-    if ! user_exists "$uname"; then
-        print_error "User '$uname' not found."; pause; return
-    fi
     if [[ "$uname" == "$SESSION_USERNAME" ]]; then
         print_error "You cannot delete your own account."; pause; return
     fi
@@ -162,16 +151,105 @@ _delete_user() {
     pause
 }
 
+_pending_registrations() {
+    while true; do
+        print_header
+        
+        local count=0
+        if [[ -f "$REGISTRATIONS_FILE" ]]; then
+            count=$(grep -c "|pending|" "$REGISTRATIONS_FILE" || echo 0)
+        fi
+        
+        if (( count == 0 )); then
+            print_section "Pending Registrations"
+            echo ""
+            print_success "No pending registrations to process."
+            pause
+            return
+        fi
+
+        clear_picker
+        while IFS='|' read -r uname fullname hash bid trx status ts; do
+            if [[ "$status" == "pending" ]]; then
+                PICKER_KEYS+=("$uname")
+                PICKER_LABELS+=("$uname - $fullname ($bid) — TRX: $trx")
+            fi
+        done < "$REGISTRATIONS_FILE"
+
+        if ! _render_picker "Pending Registrations to Process"; then
+            return
+        fi
+
+        _process_single_registration "$PICKED_ID"
+    done
+}
+
+_process_single_registration() {
+    local t_uname="$1"
+    
+    local line
+    line=$(grep "^${t_uname}|" "$REGISTRATIONS_FILE")
+    local t_full t_hash t_bid t_trx t_status t_ts
+    
+    t_full=$(echo "$line" | cut -d'|' -f2)
+    t_hash=$(echo "$line" | cut -d'|' -f3)
+    t_bid=$(echo "$line"  | cut -d'|' -f4)
+    t_trx=$(echo "$line"  | cut -d'|' -f5)
+    t_ts=$(echo "$line"   | cut -d'|' -f7)
+
+    print_header
+    print_section "Process Registration"
+    echo ""
+    echo "  Username  : $t_uname"
+    echo "  Full Name : $t_full"
+    echo "  Batch     : $t_bid"
+    echo "  Payment ID: $t_trx"
+    echo "  Amount    : 500 BDT"
+    echo "  Submitted : $t_ts"
+    echo ""
+    
+    print_menu "Action" \
+        "1:Approve" \
+        "2:Reject" \
+        "0:Cancel"
+
+    case "$MENU_CHOICE" in
+        1)
+            echo "${t_uname}|${t_full}|student|${t_hash}|${t_bid}|0" >> "$USERS_FILE"
+            
+            local tmp; tmp=$(mktemp)
+            awk -F'|' -v u="$t_uname" 'BEGIN{OFS="|"} {
+                if ($1 == u && $6 == "pending") { $6 = "approved" }
+                print
+            }' "$REGISTRATIONS_FILE" > "$tmp"
+            mv "$tmp" "$REGISTRATIONS_FILE"
+            
+            log_action "$SESSION_USERNAME" "APPROVE_REGISTRATION:${t_uname}"
+            print_success "Registration for '$t_uname' APPROVED."
+            pause
+            ;;
+        2)
+            local tmp; tmp=$(mktemp)
+            awk -F'|' -v u="$t_uname" 'BEGIN{OFS="|"} {
+                if ($1 == u && $6 == "pending") { $6 = "rejected" }
+                print
+            }' "$REGISTRATIONS_FILE" > "$tmp"
+            mv "$tmp" "$REGISTRATIONS_FILE"
+            
+            log_action "$SESSION_USERNAME" "REJECT_REGISTRATION:${t_uname}"
+            print_success "Registration for '$t_uname' REJECTED."
+            pause
+            ;;
+        *)
+            return
+            ;;
+    esac
+}
+
 _reset_password() {
     print_header
-    print_section "Reset User Password"
-    echo ""
-    read -rp "  Username: " uname
-    uname=$(trim "$uname")
-
-    if ! user_exists "$uname"; then
-        print_error "User '$uname' not found."; pause; return
-    fi
+    if ! pick_user; then return; fi
+    local uname="$PICKED_ID"
 
     local new_pass
     while true; do
@@ -250,17 +328,8 @@ _create_batch() {
 
 _advance_batch() {
     print_header
-    print_section "Advance Batch Semester"
-    echo ""
-
-    _list_batches_inline
-    echo ""
-    read -rp "  Batch ID to advance: " bid
-    bid=$(trim "$bid")
-
-    if ! batch_exists "$bid"; then
-        print_error "Batch '$bid' not found."; pause; return
-    fi
+    if ! pick_batch; then return; fi
+    local bid="$PICKED_ID"
 
     local cur_level cur_term status
     cur_level=$(get_batch_field "$bid" 3)
@@ -340,16 +409,8 @@ _list_batches_inline() {
 
 _view_batch_students() {
     print_header
-    print_section "View Batch Students"
-    echo ""
-    _list_batches_inline
-    echo ""
-    read -rp "  Batch ID: " bid
-    bid=$(trim "$bid")
-
-    if ! batch_exists "$bid"; then
-        print_error "Batch '$bid' not found."; pause; return
-    fi
+    if ! pick_batch; then return; fi
+    local bid="$PICKED_ID"
 
     local level term
     level=$(get_batch_field "$bid" 3)
@@ -420,31 +481,11 @@ _view_curriculum() {
 
 _assign_teacher() {
     print_header
-    print_section "Assign Teacher to Course"
-    echo ""
+    if ! pick_user "teacher"; then return; fi
+    local teacher="$PICKED_ID"
 
-    echo "  Available Teachers:"
-    while IFS='|' read -r uname fullname role _ _ _; do
-        [[ "$role" == "teacher" ]] && printf "    %-15s %s\n" "$uname" "$fullname"
-    done < "$USERS_FILE"
-    echo ""
-
-    local teacher
-    read -rp "  Teacher Username: " teacher
-    teacher=$(trim "$teacher")
-    if ! user_exists "$teacher"; then
-        print_error "User '$teacher' not found."; pause; return
-    fi
-    if [[ "$(get_user_field "$teacher" 3)" != "teacher" ]]; then
-        print_error "'$teacher' is not a teacher account."; pause; return
-    fi
-
-    local code
-    read -rp "  Course Code     : " code
-    code=$(trim "$code")
-    if ! course_exists "$code"; then
-        print_error "Course '$code' not found in curriculum."; pause; return
-    fi
+    if ! pick_course; then return; fi
+    local code="$PICKED_ID"
 
     if grep -q "^${teacher}|${code}$" "$TEACHER_COURSES_FILE"; then
         print_warn "Assignment already exists."; pause; return
@@ -460,14 +501,20 @@ _assign_teacher() {
 
 _remove_teacher_assignment() {
     print_header
-    print_section "Remove Teacher from Course"
-    echo ""
+    if ! pick_user "teacher"; then return; fi
+    local teacher="$PICKED_ID"
 
-    local teacher code
-    read -rp "  Teacher Username: " teacher
-    teacher=$(trim "$teacher")
-    read -rp "  Course Code     : " code
-    code=$(trim "$code")
+    clear_picker
+    while IFS='|' read -r t code; do
+        if [[ "$t" == "$teacher" ]]; then
+            local cname; cname=$(get_course_field "$code" 2)
+            PICKER_KEYS+=("$code")
+            PICKER_LABELS+=("[$code] $cname")
+        fi
+    done < "$TEACHER_COURSES_FILE"
+    
+    if ! _render_picker "Select Course to Remove"; then return; fi
+    local code="$PICKED_ID"
 
     if ! grep -q "^${teacher}|${code}$" "$TEACHER_COURSES_FILE"; then
         print_error "Assignment not found."; pause; return
@@ -519,16 +566,8 @@ _admin_enrollment_management() {
 
 _auto_enroll_batch() {
     print_header
-    print_section "Auto-Enroll Batch"
-    echo ""
-    _list_batches_inline
-    echo ""
-    read -rp "  Batch ID: " bid
-    bid=$(trim "$bid")
-
-    if ! batch_exists "$bid"; then
-        print_error "Batch '$bid' not found."; pause; return
-    fi
+    if ! pick_batch; then return; fi
+    local bid="$PICKED_ID"
 
     local level term
     level=$(get_batch_field "$bid" 3)
@@ -576,16 +615,8 @@ _auto_enroll_batch() {
 
 _view_enrollments() {
     print_header
-    print_section "View Enrollments"
-    echo ""
-    _list_batches_inline
-    echo ""
-    read -rp "  Batch ID: " bid
-    bid=$(trim "$bid")
-
-    if ! batch_exists "$bid"; then
-        print_error "Batch '$bid' not found."; pause; return
-    fi
+    if ! pick_batch; then return; fi
+    local bid="$PICKED_ID"
 
     local cur_sem=""
     echo ""
@@ -631,14 +662,8 @@ _admin_reports() {
 
 _report_grade_sheet() {
     print_header
-    print_section "Grade Sheet by Course"
-    echo ""
-    read -rp "  Course Code: " code
-    code=$(trim "$code")
-
-    if ! course_exists "$code"; then
-        print_error "Course '$code' not found."; pause; return
-    fi
+    if ! pick_course; then return; fi
+    local code="$PICKED_ID"
 
     local gf; gf=$(get_grade_file "$code")
     local cname; cname=$(get_course_field "$code" 2)
@@ -662,19 +687,9 @@ _report_batch() {
     print_header
     print_section "Full Batch Academic Report"
     echo ""
-    _list_batches_inline
-    echo ""
-    read -rp "  Batch ID: " bid
-    bid=$(trim "$bid")
-
-    if ! batch_exists "$bid"; then
-        print_error "Batch '$bid' not found."; pause; return
-    fi
-
-    echo ""
-    echo "  Batch: $bid"
-    echo "$SEP"
-
+    if ! pick_batch; then return; fi
+    local bid="$PICKED_ID"
+    
     while IFS='|' read -r uname fullname role _ batch _; do
         [[ "$role" != "student" || "$batch" != "$bid" ]] && continue
 

@@ -105,9 +105,7 @@ _teacher_enter_grade() {
     echo ""
 
     # Show enrolled students with current grades
-    printf "  %-15s %-12s %-28s %s\n" "Username" "Batch" "Full Name" "Current Grade"
-    echo "$DIV"
-
+    clear_picker
     local gf; gf=$(get_grade_file "$code")
     while IFS='|' read -r uname bid ec_code level term status; do
         [[ "$ec_code" != "$code" ]] && continue
@@ -117,17 +115,12 @@ _teacher_enter_grade() {
             local line; line=$(grep "^${uname}|${bid}|" "$gf" | head -1)
             [[ -n "$line" ]] && cur_grade=$(echo "$line" | cut -d'|' -f3)
         fi
-        printf "  %-15s %-12s %-28s %s\n" "$uname" "$bid" "$fullname" "$cur_grade"
+        PICKER_KEYS+=("$uname")
+        PICKER_LABELS+=("$uname - $fullname ($bid) [Grade: $cur_grade]")
     done < "$ENROLLMENTS_FILE"
 
-    echo ""
-    read -rp "  Student Username: " target_user
-    target_user=$(trim "$target_user")
-
-    # Verify student is enrolled in this course
-    if ! grep -q "^${target_user}|[^|]*|${code}|" "$ENROLLMENTS_FILE"; then
-        print_error "'$target_user' is not enrolled in $code."; pause; return
-    fi
+    if ! _render_picker "Select Student to Grade"; then return; fi
+    local target_user="$PICKED_ID"
 
     local bid; bid=$(grep "^${target_user}|[^|]*|${code}|" "$ENROLLMENTS_FILE" | head -1 | cut -d'|' -f2)
 
@@ -268,29 +261,23 @@ _teacher_view_notices() {
 # ── Helper: pick from teacher's assigned courses ──────────────────────────────
 
 _pick_my_course() {
-    echo "" >&2
-    echo "  Your Courses:" >&2
-    local i=1 codes=()
+    clear_picker
     while IFS= read -r code; do
-        local cname; cname=$(get_course_field "$code" 2)
-        printf "    [%d] %-10s %s\n" "$i" "$code" "$cname" >&2
-        codes+=("$code")
-        ((i++))
+        if [[ -n "$code" ]]; then
+            local cname; cname=$(get_course_field "$code" 2)
+            PICKER_KEYS+=("$code")
+            PICKER_LABELS+=("[$code] $cname")
+        fi
     done < <(_get_my_courses)
 
-    if [[ ${#codes[@]} -eq 0 ]]; then
+    if [[ ${#PICKER_KEYS[@]} -eq 0 ]]; then
         print_error "No courses assigned to you." >&2
         return 1
     fi
 
-    echo "" >&2
-    read -rp "  Course Code: " code
-    code=$(trim "$code")
-
-    if ! grep -q "^${SESSION_USERNAME}|${code}$" "$TEACHER_COURSES_FILE"; then
-        print_error "You are not assigned to course '$code'." >&2
+    if ! _render_picker "Your Assigned Courses" >&2; then
         return 1
     fi
 
-    echo "$code"
+    echo "$PICKED_ID"
 }

@@ -15,13 +15,15 @@ COURSES_FILE="$DB_DIR/courses.txt"
 ENROLLMENTS_FILE="$DB_DIR/enrollments.txt"
 TEACHER_COURSES_FILE="$DB_DIR/teacher_courses.txt"
 ACTIVITY_LOG="$LOGS_DIR/activity.log"
+REGISTRATIONS_FILE="$DB_DIR/registrations.txt"
 
 # ── Directory bootstrap ───────────────────────────────────────────────────────
 
 init_dirs() {
     mkdir -p "$DB_DIR" "$COURSES_DIR" "$LOGS_DIR" "$SESSIONS_DIR"
     for f in "$USERS_FILE" "$BATCHES_FILE" "$COURSES_FILE" \
-              "$ENROLLMENTS_FILE" "$TEACHER_COURSES_FILE" "$ACTIVITY_LOG"; do
+              "$ENROLLMENTS_FILE" "$TEACHER_COURSES_FILE" "$ACTIVITY_LOG" \
+              "$REGISTRATIONS_FILE"; do
         [ -f "$f" ] || touch "$f"
     done
 }
