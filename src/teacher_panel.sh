@@ -4,16 +4,16 @@
 teacher_panel() {
     while true; do
         print_header
-        echo "  Logged in as: $SESSION_FULLNAME (Teacher)"
+        echo "  👨‍🏫  Logged in as: $SESSION_FULLNAME (Teacher)"
         print_menu "Teacher Panel" \
-            "1:My Courses" \
-            "2:View Enrolled Students" \
-            "3:Enter / Update Grade" \
-            "4:View Grade Sheet" \
-            "5:Post Notice" \
-            "6:View Notices" \
-            "7:Change Password" \
-            "0:Logout"
+            "1:📚  My Courses" \
+            "2:👥  View Enrolled Students" \
+            "3:✏️   Enter / Update Grade" \
+            "4:📊  View Grade Sheet" \
+            "5:📢  Post Notice" \
+            "6:📰  View Notices" \
+            "7:🔑  Change Password" \
+            "0:🚪  Logout"
 
         case "$MENU_CHOICE" in
             1) _teacher_my_courses ;;

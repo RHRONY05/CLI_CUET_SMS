@@ -27,14 +27,14 @@ print_section() {
     echo "$DIV"
 }
 
-print_success() { echo "  [OK]    $1"; }
-print_error()   { echo "  [ERROR] $1"; }
-print_info()    { echo "  [INFO]  $1"; }
-print_warn()    { echo "  [WARN]  $1"; }
+print_success() { echo "  ✅  $1"; }
+print_error()   { echo "  ❌  $1"; }
+print_info()    { echo "  ℹ️   $1"; }
+print_warn()    { echo "  ⚠️   $1"; }
 
 pause() {
     echo ""
-    read -rp "  Press Enter to continue..."
+    read -rp "  ⏎  Press Enter to continue..."
 }
 
 confirm() {
@@ -159,22 +159,22 @@ print_table_header() {
 
 print_landing() {
     print_header
-    echo "  Welcome to the CUET CSE Student Management System"
+    echo "  👋  Welcome to the CUET CSE Student Management System"
     echo ""
     echo "  Manage academic records for the CSE Department across"
     echo "  all semesters — grades, notices, and CGPA tracking."
     echo ""
     echo "  Roles:"
-    echo "    Admin   —  Manage users, batches, courses, enrollment"
-    echo "    Teacher —  Enter grades, post notices"
-    echo "    Student —  View grades, CGPA, notices"
+    echo "    🛡️   Admin   —  Manage users, batches, courses, enrollment"
+    echo "    👨‍🏫  Teacher —  Enter grades, post notices"
+    echo "    🎓   Student —  View grades, CGPA, notices"
     echo ""
     echo "$DIV"
     echo ""
-    echo "    [1] Login"
-    echo "    [2] Register (Student)"
-    echo "    [3] About"
-    echo "    [0] Exit"
+    echo "    [1] 🔐  Login"
+    echo "    [2] 📝  Register (Student)"
+    echo "    [3] ℹ️   About"
+    echo "    [0] 🚪  Exit"
     echo ""
     echo "$DIV"
     echo ""
@@ -192,12 +192,12 @@ print_about() {
     echo "  $UNIV"
     echo ""
     echo "  Features:"
-    echo "    - File-based authentication (SHA-256 hashed passwords)"
-    echo "    - Role-based access control (Admin / Teacher / Student)"
-    echo "    - Multi-semester grade tracking (8 semesters)"
-    echo "    - Automatic CGPA calculation"
-    echo "    - Course notice board"
-    echo "    - Full activity logging"
+    echo "    🔒  File-based authentication (SHA-256 hashed passwords)"
+    echo "    👥  Role-based access control (Admin / Teacher / Student)"
+    echo "    📊  Multi-semester grade tracking (8 semesters)"
+    echo "    🧮  Automatic CGPA calculation"
+    echo "    📢  Course notice board"
+    echo "    📜  Full activity logging"
     echo ""
     pause
 }

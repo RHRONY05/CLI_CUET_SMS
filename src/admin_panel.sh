@@ -4,15 +4,15 @@
 admin_panel() {
     while true; do
         print_header
-        echo "  Logged in as: $SESSION_FULLNAME (Admin)"
+        echo "  🛡️   Logged in as: $SESSION_FULLNAME (Admin)"
         print_menu "Admin Panel" \
-            "1:User Management" \
-            "2:Batch Management" \
-            "3:Course and Teacher Assignment" \
-            "4:Enrollment Management" \
-            "5:Reports" \
-            "6:Activity Log" \
-            "0:Logout"
+            "1:👥  User Management" \
+            "2:🎓  Batch Management" \
+            "3:📚  Course and Teacher Assignment" \
+            "4:📋  Enrollment Management" \
+            "5:📊  Reports" \
+            "6:📜  Activity Log" \
+            "0:🚪  Logout"
 
         case "$MENU_CHOICE" in
             1) _admin_user_management ;;
@@ -35,14 +35,14 @@ _admin_user_management() {
     while true; do
         print_header
         print_menu "User Management" \
-            "1:Add Student" \
-            "2:Add Teacher" \
-            "3:Add Admin" \
-            "4:List All Users" \
-            "5:Delete User" \
-            "6:Reset User Password" \
-            "7:Pending Registrations" \
-            "0:Back"
+            "1:➕  Add Student" \
+            "2:➕  Add Teacher" \
+            "3:➕  Add Admin" \
+            "4:📋  List All Users" \
+            "5:🗑️   Delete User" \
+            "6:🔑  Reset User Password" \
+            "7:⏳  Pending Registrations" \
+            "0:◀️   Back"
 
         case "$MENU_CHOICE" in
             1) _add_user_flow "student" ;;
@@ -209,9 +209,9 @@ _process_single_registration() {
     echo ""
     
     print_menu "Action" \
-        "1:Approve" \
-        "2:Reject" \
-        "0:Cancel"
+        "1:✅  Approve" \
+        "2:❌  Reject" \
+        "0:◀️   Cancel"
 
     case "$MENU_CHOICE" in
         1)
@@ -281,11 +281,11 @@ _admin_batch_management() {
     while true; do
         print_header
         print_menu "Batch Management" \
-            "1:Create New Batch" \
-            "2:Advance Batch to Next Semester" \
-            "3:List All Batches" \
-            "4:View Students in Batch" \
-            "0:Back"
+            "1:➕  Create New Batch" \
+            "2:⏭️   Advance Batch to Next Semester" \
+            "3:📋  List All Batches" \
+            "4:👥  View Students in Batch" \
+            "0:◀️   Back"
 
         case "$MENU_CHOICE" in
             1) _create_batch ;;
@@ -442,11 +442,11 @@ _admin_course_management() {
     while true; do
         print_header
         print_menu "Course and Teacher Assignment" \
-            "1:View Curriculum (all semesters)" \
-            "2:Assign Teacher to Course" \
-            "3:Remove Teacher from Course" \
-            "4:View All Teacher Assignments" \
-            "0:Back"
+            "1:📖  View Curriculum (all semesters)" \
+            "2:👨‍🏫  Assign Teacher to Course" \
+            "3:❌  Remove Teacher from Course" \
+            "4:📋  View All Teacher Assignments" \
+            "0:◀️   Back"
 
         case "$MENU_CHOICE" in
             1) _view_curriculum ;;
@@ -551,9 +551,9 @@ _admin_enrollment_management() {
     while true; do
         print_header
         print_menu "Enrollment Management" \
-            "1:Auto-Enroll Batch for Current Semester" \
-            "2:View Enrollments for a Batch" \
-            "0:Back"
+            "1:✅  Auto-Enroll Batch for Current Semester" \
+            "2:📋  View Enrollments for a Batch" \
+            "0:◀️   Back"
 
         case "$MENU_CHOICE" in
             1) _auto_enroll_batch ;;
@@ -647,9 +647,9 @@ _admin_reports() {
     while true; do
         print_header
         print_menu "Reports" \
-            "1:Grade Sheet by Course" \
-            "2:Full Batch Academic Report" \
-            "0:Back"
+            "1:📊  Grade Sheet by Course" \
+            "2:📁  Full Batch Academic Report" \
+            "0:◀️   Back"
 
         case "$MENU_CHOICE" in
             1) _report_grade_sheet ;;

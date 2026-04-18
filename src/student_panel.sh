@@ -4,15 +4,15 @@
 student_panel() {
     while true; do
         print_header
-        echo "  Logged in as: $SESSION_FULLNAME (Student)"
+        echo "  🎓  Logged in as: $SESSION_FULLNAME (Student)"
         print_menu "Student Panel" \
-            "1:Dashboard" \
-            "2:My Current Courses" \
-            "3:My Grades (Current Semester)" \
-            "4:Academic Record and CGPA" \
-            "5:Course Notices" \
-            "6:Change Password" \
-            "0:Logout"
+            "1:🏠  Dashboard" \
+            "2:📚  My Current Courses" \
+            "3:📊  My Grades (Current Semester)" \
+            "4:🎓  Academic Record and CGPA" \
+            "5:📢  Course Notices" \
+            "6:🔑  Change Password" \
+            "0:🚪  Logout"
 
         case "$MENU_CHOICE" in
             1) _student_dashboard ;;

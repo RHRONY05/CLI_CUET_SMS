@@ -28,7 +28,7 @@ clear_session() {
 
 do_login() {
     print_header
-    print_section "Login"
+    print_section "🔐 Login"
     echo ""
     read -rp "  Username : " uname
     read -rsp "  Password : " upass
@@ -76,7 +76,7 @@ do_login() {
     log_action "$uname" "LOGIN"
 
     echo ""
-    print_success "Welcome, $fullname!"
+    print_success "👋  Welcome, $fullname!"
     sleep 1
 
     # Force password change on first login
@@ -97,7 +97,7 @@ do_logout() {
 _force_change_password() {
     local uname="$1"
     print_header
-    print_section "First Login — Password Change Required"
+    print_section "🔑 First Login — Password Change Required"
     echo ""
     echo "  You must set a new password before continuing."
     echo ""
@@ -107,7 +107,7 @@ _force_change_password() {
 change_password() {
     local uname="$1"
     print_header
-    print_section "Change Password"
+    print_section "🔑 Change Password"
     echo ""
 
     local cur_pass cur_hash stored_hash
@@ -162,7 +162,7 @@ _do_set_password() {
 
 first_run_setup() {
     print_header
-    echo "  FIRST TIME SETUP"
+    echo "  🚀  FIRST TIME SETUP"
     echo ""
     echo "  No admin account found."
     echo "  Please create the initial administrator account."
@@ -223,7 +223,7 @@ first_run_setup() {
 
 student_registration() {
     print_header
-    print_section "Student Registration"
+    print_section "📝 Student Registration"
     echo ""
     echo "  Please provide your details. Once submitted,"
     echo "  an administrator will review and approve your account."
@@ -278,7 +278,7 @@ student_registration() {
 
     # Payment
     echo ""
-    print_section "Payment System"
+    print_section "💳 Payment System"
     echo "  Registration fee is 500 BDT."
     echo "  Transaction ID must be exactly 10 characters,"
     echo "  comprising a mix of uppercase letters and numbers."
